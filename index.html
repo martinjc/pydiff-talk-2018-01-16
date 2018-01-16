@@ -1,0 +1,245 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Using Python to Choose my Favourite Child</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>How many ways do I love thee?</h1>
+				</section>
+				<section>
+					<h1>Using Python to Choose my Favourite Child</h1>
+				</section>
+				<section data-background-image="media/art_and_eve.jpg" data-background-size="contain">
+				</section>
+				<section>
+					<h1>Which one do I love more?</h1>
+				</section>
+				<section data-background-video="media/science.mp4" data-background-video-loop="true" data-background-size="contain"></section>
+				<section>
+					<h1>data??????</h1>
+				</section>
+				<section data-background-image="media/app1.png" data-background-size="contain">
+				</section>
+				<section data-background-image="media/app2.png" data-background-size="contain">
+				</section>
+				<section data-background-image="media/app3.png" data-background-size="contain">
+				</section>
+				<section data-markdown>
+				```python
+				import sqlite3
+				conn = sqlite3.connect('BabyData.db')
+				```
+				</section>
+				<section data-markdown>
+				```python
+				c = conn.cursor()
+				for row in c.execute("SELECT name, gender, birthday FROM babies"):
+				    print(row)
+				```
+
+				```
+				('Arthur ', 'boy', 1431471600000)
+				('Evelyn', 'girl', 1505343600000)
+				```
+				</section>
+				<section>
+					<h3>SQL? I want to write Python!</h3>
+				</section>
+				<section data-markdown>
+				```python
+				import sqlalchemy
+				```
+				</section>
+				<section data-markdown>
+				```python
+				from sqlalchemy import create_engine, Column, Integer, String
+				from sqlalchemy.ext.declarative import declarative_base
+
+				class Baby(Base):
+
+				    __tablename__ = 'babies'
+
+				    id = Column(Integer, primary_key=True)
+				    name = Column(String)
+				    gender = Column(String)
+				    birthday = Column(Integer)
+				```
+				</section>
+				<section>
+					<h3>Defining my own tables? But I'm really lazy!</h3>
+				</section>
+				<section data-markdown>
+				```python
+				from sqlalchemy.ext.automap import automap_base
+				from sqlalchemy import create_engine
+
+				Base = automap_base()
+
+				engine = create_engine('sqlite:///BabyData.db')
+
+				Base.prepare(engine, reflect=True)
+
+				Baby = Base.classes.babies
+				Action = Base.classes.daily_actions
+				```
+				</section>
+				<section data-markdown>
+				```python
+				from sqlalchemy.orm import Session
+
+				session = Session(engine)
+
+				for baby in session.query(Baby):
+				    print(baby.name, baby.gender, baby.uid)
+				```
+				```
+				Arthur  boy 64f39806449c5572f1d629013f42a387
+				Evelyn girl 84d28e0ac7cd6d557f33ad72c5a8f6c1
+				```
+				</section>
+				<section data-markdown>
+				```python
+				from datetime import datetime
+
+				BABY_ID = '64f39806449c5572f1d629013f42a387'
+
+				for a in session.query(Action).filter(Action.baby_uid==BABY_ID):
+				    print(datetime.fromtimestamp(a.start_millis//1000))
+				```
+				</section>
+				<section data-markdown>
+				```python
+				from datetime import timedelta
+
+				SIXTEEN_WEEKS = timedelta(weeks=16)
+
+				babies = {}
+
+				for baby in session.query(Baby):
+				    babies[baby.name] = {
+				        'uid': baby.uid,
+				        'start': float(baby.birthday),
+				        'end': (datetime.fromtimestamp(baby.birthday/1000) + SIXTEEN_WEEKS).timestamp() * 1000
+				    }
+				```
+				</section>
+				<section>
+					<h1>💩</h1>
+				</section>
+				<section data-markdown>
+				```python
+				for baby, data in babies.items():
+				    poop_count = session.query(Action)
+						.filter(Action.baby_uid==data['uid'])
+						.filter(Action.start_millis <= data['end'])
+						.filter(Action.type == 'diaper_change')
+						.filter(Action.poo == 1)
+						.count()
+				    print(baby, poop_count)
+				```
+				</section>
+				<section data-background-image="media/poops.png" data-background-size="contain">
+				</section>
+				<section data-background-video="media/money.mp4" data-background-video-loop="true" data-background-size="contain"></section>
+				<section data-markdown>
+				```python
+				from sqlalchemy.sql import func
+
+				for baby, data in babies.items():
+				    milk_volume = session.query(func.sum(Action.volume))
+						.filter(Action.baby_uid==data['uid'])
+						.filter(Action.start_millis <= data['end'])
+						.filter(Action.type == 'bottle').one()[0]
+
+				    milk_ozs = milk_volume * 0.0351951
+				    milk_weight = milk_ozs * 4.5
+				    milk_boxes = milk_weight / 900
+
+				    print(baby, milk_volume, milk_boxes)
+				```
+				</section>
+				<section data-background-image="media/milk.png" data-background-size="contain">
+				</section>
+				<section data-markdown>
+				```python
+				for baby, data in babies.items():
+				    bottles = session.query(Action)
+						.filter(Action.baby_uid==data['uid'])
+						.filter(Action.start_millis <= data['end'])
+						.filter(Action.type == 'bottle')
+						.count()
+				    print(baby, bottles)
+				```
+				</section>
+				<section data-background-image="media/bottles.png" data-background-size="contain">
+				</section>
+				<section data-markdown>
+				```python
+				total_milk_boxes = (bottles * 6 * 4.5) / 900
+				total_price = total_milk_boxes * 9
+				```
+				</section>
+				<section data-background-image="media/cost_sixteen.png" data-background-size="contain">
+				</section>
+				<section data-background-image="media/cost_year.png" data-background-size="contain">
+				</section>
+				<section>
+					<h1>Which one do I love more?</h1>
+				</section>
+				<section>
+					<h3>It Depends</h3>
+				</section>
+				<section data-background-video="media/science2.mp4" data-background-video-loop="true" data-background-size="contain"></section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			Reveal.initialize({
+				width: "80%",
+				height: "100%",
+
+				controls: false,
+				progress: true,
+				slideNumber: true,
+				history: true,
+				center: true,
+
+				margin: 0,
+				minScale: 1,
+				maxScale: 1,
+
+				transition: 'none', // none/fade/slide/convex/concave/zoom
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+				]
+			});
+		</script>
+	</body>
+</html>
