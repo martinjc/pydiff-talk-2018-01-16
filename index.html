@@ -26,23 +26,21 @@
 			<div class="slides">
 				<section>
 					<h1>How many ways do I love thee?</h1>
-				</section>
-				<section>
-					<h1>Using Python to choose my favourite child</h1>
+					<h3>Using Python to choose my favourite child</h3>
 				</section>
 				<section data-background-image="media/art_and_eve.jpg" data-background-size="contain">
 				</section>
-				<section>
+				<!-- <section>
 					<h1>Which one do I love more?</h1>
-				</section>
+				</section> -->
 				<section data-background-video="media/science.mp4" data-background-video-loop="true" data-background-size="contain"></section>
 				<section>
 					<h1>data??????</h1>
 				</section>
 				<section data-background-image="media/app1.png" data-background-size="contain">
 				</section>
-				<section data-background-image="media/app2.png" data-background-size="contain">
-				</section>
+				<!-- <section data-background-image="media/app2.png" data-background-size="contain">
+				</section> -->
 				<section data-background-image="media/app3.png" data-background-size="contain">
 				</section>
 				<section data-markdown>
@@ -50,12 +48,10 @@
 				import sqlite3
 				conn = sqlite3.connect('BabyData.db')
 				```
-				</section>
-				<section data-markdown>
 				```python
 				c = conn.cursor()
 				for row in c.execute("SELECT name, gender, birthday FROM babies"):
-				    print(row)
+					print(row)
 				```
 
 				```
@@ -70,8 +66,6 @@
 				```python
 				import sqlalchemy
 				```
-				</section>
-				<section data-markdown>
 				```python
 				from sqlalchemy import create_engine, Column, Integer, String
 				from sqlalchemy.ext.declarative import declarative_base
@@ -118,7 +112,7 @@
 				Evelyn girl 84d28e0ac7cd6d557f33ad72c5a8f6c1
 				```
 				</section>
-				<section data-markdown>
+				<!-- <section data-markdown>
 				```python
 				from datetime import datetime
 
@@ -127,7 +121,7 @@
 				for a in session.query(Action).filter(Action.baby_uid==BABY_ID):
 				    print(datetime.fromtimestamp(a.start_millis//1000))
 				```
-				</section>
+				</section> -->
 				<section data-markdown>
 				```python
 				from datetime import timedelta
@@ -204,8 +198,6 @@
 				</section>
 				<section>
 					<h1>Which one do I love more?</h1>
-				</section>
-				<section>
 					<h3>It depends</h3>
 				</section>
 				<section data-background-video="media/science2.mp4" data-background-video-loop="true" data-background-size="contain"></section>
